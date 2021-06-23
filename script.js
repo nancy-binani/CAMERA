@@ -1,9 +1,9 @@
 let video = document.querySelector("video");
 let recordBtn = document.querySelector("#record");
-let recDiv = document.querySelector("div");
+let recDiv = document.querySelector("#record div");
 let capBtn = document.querySelector("#capture");
-let capDiv = document.querySelector("div");
-let body = document.querySelector("body");
+let capDiv = document.querySelector("#capture div");
+
 
 let mediaRecorder;
 let chunks = [];
@@ -11,18 +11,24 @@ let isRecording=false;
 let appliedFilter;
 let minZoom = 1;
 let maxZoom = 3;
-let filters = document.querySelector(".filter");
+let filters = document.querySelectorAll(".filter");
 let zoomInBtn = document.querySelector(".zoom-in");
 let zoomOutBtn = document.querySelector(".zoom-out");
 let currZoom = 1;
 
+let galleryBtn = document.querySelector("#gallery");
+
+galleryBtn.addEventListener("click",function(){
+  // localhost:5500/index.html => localhost:5500/gallery.html
+  location.assign("gallery.html");
+});
 
 zoomInBtn.addEventListener("click",function(){
     if(currZoom < maxZoom){
         currZoom=currZoom + 0.1;
     }
 
-    video.style.transform = `scale(${currZoom})`
+    video.style.transform = `scale(${currZoom})`;
 });
 
 zoomOutBtn.addEventListener("click",function(){
@@ -30,7 +36,7 @@ zoomOutBtn.addEventListener("click",function(){
         currZoom=currZoom - 0.1;
     }
 
-    video.style.transform = `scale(${currZoom})`
+    video.style.transform = `scale(${currZoom})`;
 });
 
 for(let i=0;i<filters.length;i++){
@@ -54,7 +60,7 @@ recordBtn.addEventListener("click", function(e) {
     mediaRecorder.stop();
     isRecording = false;
     //e.currentTarget.innerText = "Start";
-    recDiv.classList.remove("record-animation");
+    recDiv.classList.remove("recordAni");
   } else {
     mediaRecorder.start();
     appliedFilter="";
@@ -63,15 +69,15 @@ recordBtn.addEventListener("click", function(e) {
     video.style.transform=`scale(${currZoom})`;
     isRecording = true;
     //e.currentTarget.innerText = "Recording";
-    recDiv.classList.remove("record-animation");
+    recDiv.classList.add("recordAni");
   }
 });
 
 capBtn.addEventListener("click", function () {
     if(isRecording) return;
-    capDiv.classList.add("capture-animation");
+    capDiv.classList.add("captureAni");
     setTimeout(function(){
-        capDiv.classList.remove("capture-animation");
+        capDiv.classList.remove("captureAni");
     },1000);
   //jobhi img screen pr dikha rha ho use save krwana
 
@@ -92,37 +98,36 @@ capBtn.addEventListener("click", function () {
 
 
   let link = canvas.toDataURL();
-  let a = document.createElement("a");
-  a.href = link;
-  a.download = "img.png";
-  a.click();
-  a.remove();
-  canvas.remove();
+
+  addMedia(link,"image");
+  // let a = document.createElement("a");
+  // a.href = link;
+  // a.download = "img.jpg";
+  // a.click();
+  // a.remove();
+  // canvas.remove();
 });
 navigator.mediaDevices
-  .getUserMedia({ video: true, audio: true })
+  .getUserMedia({ video: true })
   .then(function (mediaStream) {
-    //let options = { mimeType: "video/webm" };
-    //  mediaRecorder = new MediaRecorder(mediaStream,options);
     mediaRecorder = new MediaRecorder(mediaStream);
 
-    mediaRecorder.addEventListener("dataavailable", function (e) {
+    mediaRecorder.addEventListener("dataavailable", function(e) {
       chunks.push(e.data);
     });
 
-    mediaRecorder.addEventListener("stop", function (e) {
-      //let blob = new Blob(chunks, { type: "video/webm" });
-      let blob = new Blob(chunks, { type: "video/mp4" });
-      //console.log(chunks);
-      chunks = [];
-      let a = document.createElement("a");
-      let url = window.URL.createObjectURL(blob);
-      a.href = url;
-      //a.download = "video.webm";
-      a.download = "video.mp4";
+    mediaRecorder.addEventListener("stop", function(e) {
+      //for video we will save this blob object in db
+       let blob = new Blob(chunks, { type: "video/mp4" });
+       chunks = [];
+       addMedia(blob,"video");
+      // let a = document.createElement("a");
+      // let url = window.URL.createObjectURL(blob);
+      // a.href = url;
+      // a.download = "video.mp4";
 
-      a.click();
-      a.remove();
+      // a.click();
+      // a.remove();
     });
     video.srcObject = mediaStream;
   })
